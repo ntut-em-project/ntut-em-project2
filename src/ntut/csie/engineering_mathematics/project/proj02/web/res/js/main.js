@@ -1,8 +1,42 @@
 "use strict";
 //Dom
-let AllComponent = [];
+let AllComponent = [], AllConnection = [], AllNodeCollection = [];
 (function () {
     const CanvasContainer = $("#mainCanvas");
+    const cs = document.getElementById('canvas');
+    const ctx = cs.getContext('2d');
+    let ClickedNode = [];
+
+    class Connection {
+        constructor(n1, n2) {
+            this.n1 = n1;
+            this.n2 = n2;
+        }
+    }
+
+    class NodeCollection {
+        constructor() {
+            this.nodes = [];
+            AllNodeCollection.push(this);
+        }
+
+        add(node) {
+            if (!this.nodes.some(n => node.c === n.c && node.id === n.id)) {
+                this.nodes.push(node);
+            }
+        }
+
+        static merge(nC1, nC2) {
+            nC1.nodes = nC1.nodes.concat(nC2.nodes);
+            nC2.nodes.forEach(n => {
+                n.c[`n${n.id}C`] = nC1;
+            });
+            let i = AllNodeCollection.indexOf(nC2);
+            if (i >= 0) {
+                AllNodeCollection.splice(i, 1);
+            }
+        }
+    }
 
     class Component {
         constructor(type, deg) {
@@ -10,6 +44,8 @@ let AllComponent = [];
             ele.id = '_u_' + new Date().getTime();
             this.deg = deg;
             this.type = type;
+            this.n1C = undefined;
+            this.n2C = undefined;
 
             ele.classList.add('component');
 
@@ -30,7 +66,7 @@ let AllComponent = [];
             this._onUpdateTypeDeg();
         }
 
-        showInfoPanel(){
+        showInfoPanel() {
 
         }
 
@@ -49,6 +85,63 @@ let AllComponent = [];
             CanvasContainer.append(this.ele);
             this.ele.addEventListener('dragstart', drag);
             this.ele.addEventListener('dragend', dragEnd);
+
+            const t = this;
+            const b = this.ele.getBoundingClientRect();
+            const _X = .15;
+            this.ele.addEventListener('click', function (e) {
+                let node = undefined;
+                let p = -1;
+                if (t.deg == 1) {
+                    p = e.layerY / b.height;
+                } else {
+                    p = e.layerX / b.width;
+                }
+                if (p > 1 - _X) {
+                    node = t.Node2;
+                } else if (p < _X) {
+                    node = t.Node1;
+                }
+                const FIRST = ClickedNode[0];
+                let same = false;
+                if (FIRST) {
+                    if (FIRST.c === node.c) same = true;
+                }
+
+                if (same) {
+                    ClickedNode.shift();
+                } else {
+                    ClickedNode.unshift(node);
+                }
+
+                if (ClickedNode.length >= 2) {
+                    AllConnection.push(new Connection(ClickedNode[0], ClickedNode[1]));
+                    let k1 = `n${ClickedNode[0].id}C`;
+                    let k2 = `n${ClickedNode[1].id}C`;
+
+                    let nc = ClickedNode[0].c[k1] || new NodeCollection();
+                    let nc2 = ClickedNode[1].c[k2];
+
+                    if (nc2) {
+                        NodeCollection.merge(nc, nc2);
+                    } else {
+                        ClickedNode[0].c[k1] = ClickedNode[1].c[k2] = nc;
+                    }
+
+                    nc.add(ClickedNode[0]);
+                    nc.add(ClickedNode[1]);
+
+                    ClickedNode.length = 0;
+                }
+            });
+        }
+
+        get x() {
+            return parseInt(this.ele.style.left, 10) || 0;
+        }
+
+        get y() {
+            return parseInt(this.ele.style.top, 10) || 0;
         }
 
         set x(v) {
@@ -58,10 +151,69 @@ let AllComponent = [];
         set y(v) {
             this.ele.style.top = v + 'px';
         }
+
+        get Node1() {
+            const b = this.ele.getBoundingClientRect();
+            const offset = (b.width - this.ele.width) / 2;
+            let ret = {
+                id: 1,
+                c: this,
+            };
+
+            Object.defineProperty(ret, 'x', {
+                get: () => {
+                    return this.deg == 1 ? (this.x + b.width / 2) : (this.x + offset);
+                },
+            });
+            Object.defineProperty(ret, 'y', {
+                get: () => {
+                    return this.deg == 1 ? (this.y + offset) : (this.y + b.height / 2);
+                },
+            });
+
+            Object.defineProperty(ret, 'nc', {
+                get: () => this.n1C,
+                set: (v) => {
+                    this.n1C = v;
+                },
+            });
+
+            return ret;
+        }
+
+        get Node2() {
+            const b = this.ele.getBoundingClientRect();
+            const offset = (b.width - this.ele.width) / 2;
+            let ret = {
+                id: 2,
+                c: this,
+            };
+            Object.defineProperty(ret, 'x', {
+                get: () => {
+                    return this.deg == 1 ? (this.x + b.width / 2) : (this.x + b.width - offset);
+                },
+            });
+
+            Object.defineProperty(ret, 'y', {
+                get: () => {
+                    return this.deg == 1 ? (this.y + b.height - offset) : (this.y + b.height / 2);
+                },
+            });
+
+            Object.defineProperty(ret, 'nc', {
+                get: () => this.n2C,
+                set: (v) => {
+                    this.n2C = v;
+                },
+            });
+
+            return ret;
+        }
     }
 
     function drag(ev) {
         this.classList.add('dragging');
+        CanvasContainer.addClass('c-d');
 
         console.log(ev, ev.target);
         const refImg = ev.target;
@@ -90,6 +242,7 @@ let AllComponent = [];
 
     function dragEnd(ev) {
         this.classList.remove('dragging');
+        CanvasContainer.removeClass('c-d');
     }
 
     function drop(ev) {
@@ -104,6 +257,7 @@ let AllComponent = [];
 
     function allowDrop(ev) {
         ev.preventDefault();
+        ev.dataTransfer.dropEffect = "move";
     }
 
     function BCN(t, func, event) {
@@ -128,7 +282,41 @@ let AllComponent = [];
 
     biCom.find('*').prop('draggable', false);
 
-})();
+    function drawAllC() {
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+        ctx.fillStyle = ctx.strokeStyle = "#000";
+        const drawNode = (node) => {
+            if (!node) return;
+            ctx.beginPath();
+            ctx.moveTo(node.x, node.y);
+            ctx.arc(node.x, node.y, 5, 0, 2 * Math.PI);
+            ctx.closePath();
+            ctx.fill();
+        };
+
+        AllComponent.forEach(c => {
+            drawNode(c.Node1);
+            drawNode(c.Node2);
+        });
+
+        AllConnection.forEach(c => {
+            c.n1 = c.n1.c[`Node${c.n1.id}`];
+            c.n2 = c.n2.c[`Node${c.n2.id}`];
+
+            ctx.moveTo(c.n1.x, c.n1.y);
+            ctx.lineTo(c.n2.x, c.n2.y);
+            ctx.stroke();
+        });
+        requestAnimationFrame(drawAllC);
+    }
+
+    cs.width = cs.offsetWidth;
+    cs.height = cs.offsetHeight;
+    drawAllC();
+
+})
+();
 
 
 function SolveODE(p, q, r, f, y0, yd0) {

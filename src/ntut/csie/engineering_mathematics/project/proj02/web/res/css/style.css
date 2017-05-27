@@ -13,13 +13,15 @@
 body {
     font: 400 16px/1.5 'Noto Sans CJK TC', 'Noto Sans TC', "Microsoft JhengHei UI", "Microsoft YaHei UI", "Microsoft JhengHei", "Microsoft YaHei", Arial, Helvetica, sans-serif;
 }
+
 .flex-row {
     display: flex;
     margin-left: -15px;
     margin-right: -15px;
     flex-wrap: wrap;
 }
-header{
+
+header {
     background: #fafafa;
 }
 
@@ -27,50 +29,73 @@ header{
     float: none;
 }
 
-main aside{
+main aside {
     border-left: 1px solid #DDD;
 }
 
-#componentSrc .component-wrapper{
+#componentSrc .component-wrapper {
     margin: 0 auto 1rem;
 }
 
-#componentSrc .component~.desc{
+#componentSrc .component ~ .desc {
     display: inline-block;
     margin-left: 1rem;
     color: #3c3c3c;
     vertical-align: middle;
 }
 
-#mainCanvas{
+#mainCanvas {
     position: relative;
     background: #FEFCF5;
 }
-#mainCanvas, #canvas{
+
+#mainCanvas, #canvas {
     width: 100%;
     height: 400px;
 }
 
-#canvas{
+#canvas {
     position: absolute;
     left: 0;
     top: 0;
     z-index: 1;
 }
 
-.component{
+.component {
     padding: 10px;
 }
 
-.component:hover{
+.component:hover {
     background: #f7e1b5;
 }
 
-#mainCanvas .component{
+#mainCanvas .component {
     position: absolute;
     z-index: 2;
 }
 
-#mainCanvas .component.dragging{
+.drop-cover {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: none;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+}
+
+#mainCanvas .component:hover {
+    background: none;
+    outline: 1px solid #333;
+}
+
+#mainCanvas.c-d .drop-cover {
+    display: block;
+    background: rgba(0, 0, 0, .2);
+}
+
+#mainCanvas .component.dragging {
     opacity: 0;
+    z-index: 20;
+    left: -999px;
 }
