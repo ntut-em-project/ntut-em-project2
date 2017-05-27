@@ -10,6 +10,7 @@ import ntut.csie.engineering_mathematics.project.proj02.web.res.WebRes;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 
@@ -21,12 +22,40 @@ public class WebServer {
     public static final String INDEX = "index.html";
     static HashMap<String, String> MimeTypes = null;
 
+    private final HttpServer server;
 
-    public static void main(String[] args) throws Exception {
-        HttpServer server = HttpServer.create(new InetSocketAddress(PORT), 0);
+    public WebServer() throws IOException {
+        server = HttpServer.create(new InetSocketAddress(PORT), 0);
         server.createContext("/", new MyHandler());
+    }
+
+    public void start() {
         server.start();
         System.out.println(String.format("Server Start at http://127.0.0.1:%d/", PORT));
+    }
+
+    /**
+     * Add custom route
+     *
+     * Example:
+     * <pre>
+     * server.addRoute("/test", new WebServer.WebServerResponse() {
+     *     public String response() {
+     *         return "1234";
+     *     }
+     *
+     *     public String getExt() {
+     *       return "json";
+     *     }
+     * });
+     * </pre>
+     *
+     * @param path path
+     * @param resp resp
+     *
+     */
+    public void addRoute(String path, WebServerResponse resp) {
+        server.createContext(path, resp);
     }
 
     static HashMap<String, String> getMimeTypes() {
@@ -92,4 +121,37 @@ public class WebServer {
         }
     }
 
+    public interface WebServerResponse extends HttpHandler {
+        String response();
+
+        default String getExt() {
+            return "txt";
+        }
+
+        default void handle(HttpExchange t) throws IOException {
+            byte[] data = new byte[0];
+            try {
+                data = response().getBytes(App.ENCODING);
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+            int code = 200;
+            Headers hs = t.getResponseHeaders();
+            hs.add("Accept-Ranges", "none");
+            hs.add("Connection", "close");
+            hs.add("Pragma", "no-cache");
+            String ct = getMimeTypes().get(getExt());
+            if (ct.startsWith("text/")) {
+                ct += ";charset=" + App.ENCODING;
+            }
+
+            hs.add("Content-Type", ct);
+
+            hs.add("Content-Length", String.valueOf(data.length));
+            t.sendResponseHeaders(code, data.length);
+            OutputStream os = t.getResponseBody();
+            os.write(data);
+            os.close();
+        }
+    }
 }

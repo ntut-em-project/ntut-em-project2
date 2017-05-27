@@ -1,4 +1,4 @@
 Manifest-Version: 1.0
 Class-Path: .
-Main-Class: ntut.csie.engineering_mathematics.project.Main
+Main-Class: ntut.csie.engineering_mathematics.project.proj02.Main
 
