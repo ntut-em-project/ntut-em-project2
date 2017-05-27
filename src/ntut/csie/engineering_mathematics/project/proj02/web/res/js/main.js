@@ -7,6 +7,15 @@ let AllComponent = [], AllConnection = [], AllNodeCollection = [];
     const ctx = cs.getContext('2d');
     let ClickedNode = [];
     let CurDragObj = null;
+    const COLORS = [
+        "#cd8700",
+        "#cd400c",
+        "#a0cc0a",
+        "#8666cc",
+        "#5400AD",
+        "#2B25C3",
+        "#25BCC3"
+    ];
 
     class Connection {
         constructor(n1, n2) {
@@ -18,6 +27,7 @@ let AllComponent = [], AllConnection = [], AllNodeCollection = [];
     class NodeCollection {
         constructor() {
             this.nodes = [];
+            this.color = COLORS[AllNodeCollection.length % COLORS.length];
             AllNodeCollection.push(this);
         }
 
@@ -28,6 +38,7 @@ let AllComponent = [], AllConnection = [], AllNodeCollection = [];
         }
 
         static merge(nC1, nC2) {
+            if (nC1 === nC2) return;
             nC1.nodes = nC1.nodes.concat(nC2.nodes);
             nC2.nodes.forEach(n => {
                 n.c[`n${n.id}C`] = nC1;
@@ -129,11 +140,17 @@ let AllComponent = [], AllConnection = [], AllNodeCollection = [];
                     let k1 = `n${ClickedNode[0].id}C`;
                     let k2 = `n${ClickedNode[1].id}C`;
 
-                    let nc = ClickedNode[0].c[k1] || new NodeCollection();
+                    let nc = ClickedNode[0].c[k1];
                     let nc2 = ClickedNode[1].c[k2];
 
-                    if (nc2) {
+                    if(nc && nc2){
                         NodeCollection.merge(nc, nc2);
+                    }else if(!nc && nc2){
+                        nc = nc2;
+                    }else if(nc && !nc2){
+
+                    }else if(!nc && !nc2){
+                        nc =  new NodeCollection();
                     }
 
                     ClickedNode[0].c[k1] = ClickedNode[1].c[k2] = nc;
@@ -313,7 +330,10 @@ let AllComponent = [], AllConnection = [], AllNodeCollection = [];
         AllConnection.forEach(c => {
             c.n1 = c.n1.c[`Node${c.n1.id}`];
             c.n2 = c.n2.c[`Node${c.n2.id}`];
+            ctx.strokeStyle = c.n1.nc.color;
+            ctx.lineWidth = 2;
 
+            ctx.beginPath();
             ctx.moveTo(c.n1.x, c.n1.y);
             ctx.lineTo(c.n2.x, c.n2.y);
             ctx.stroke();
