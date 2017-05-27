@@ -81,7 +81,7 @@ public class Main {
     private static Object SolODE(String p, String q, String r, String f, String y0, String yd0)
             throws ExecutionException, InterruptedException {
         MatlabEngine ml = GetMatlab();
-        ml.eval("clearvars");
+        PrepareMatlab(ml);
         if (p == null || p.isEmpty()) p = "1";
         if (q == null || q.isEmpty()) q = "1";
         if (r == null || r.isEmpty()) r = "1";
@@ -128,12 +128,16 @@ public class Main {
     private static Object GetFunctionPoints(String func, String start, String end, String step)
             throws ExecutionException, InterruptedException {
         MatlabEngine ml = GetMatlab();
-        ml.eval("clearvars");
+        PrepareMatlab(ml);
         ml.eval(String.format("F = @(t) (%s);", func));
         ml.eval(String.format("input = [%s:%s:%s]';", start, step, end));
         ml.eval("result = arrayfun(F, input);");
         ml.eval("out = [input result]");
 
         return ml.getVariable("out");
+    }
+
+    static void PrepareMatlab(MatlabEngine ml) throws ExecutionException, InterruptedException {
+        ml.eval("clearvars");
     }
 }
