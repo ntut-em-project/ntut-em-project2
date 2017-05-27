@@ -12,7 +12,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
+import java.net.URLDecoder;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 /**
  * Created by s911415 on 2017/05/27.
@@ -36,7 +38,7 @@ public class WebServer {
 
     /**
      * Add custom route
-     *
+     * <p>
      * Example:
      * <pre>
      * server.addRoute("/test", new WebServer.WebServerResponse() {
@@ -52,7 +54,6 @@ public class WebServer {
      *
      * @param path path
      * @param resp resp
-     *
      */
     public void addRoute(String path, WebServerResponse resp) {
         server.createContext(path, resp);
@@ -121,21 +122,90 @@ public class WebServer {
         }
     }
 
-    public interface WebServerResponse extends HttpHandler {
-        String response();
+    public abstract static class WebServerResponse implements HttpHandler {
+        private static final String P_KEY = "__parameters";
+        protected HttpExchange httpExchange = null;
 
-        default String getExt() {
+        protected abstract String response() throws Exception;
+
+        protected String getExt() {
             return "txt";
         }
 
-        default void handle(HttpExchange t) throws IOException {
-            byte[] data = new byte[0];
+        protected LinkedHashMap<String, String> getParameters() {
+            LinkedHashMap<String, String> ret = (LinkedHashMap<String, String>) httpExchange.getAttribute(P_KEY);
+
+            if (ret != null) {
+                return ret;
+            } else {
+                ret = new LinkedHashMap<>();
+            }
+
+            switch (httpExchange.getRequestMethod().toUpperCase()) {
+                case "GET":
+                    parseGetParameters(ret);
+                    break;
+                case "POST":
+                    parsePostParameters(ret);
+                    break;
+            }
+
+            httpExchange.setAttribute(P_KEY, ret);
+
+            return ret;
+        }
+
+        private void parseGetParameters(LinkedHashMap<String, String> ret) {
+            String query = httpExchange.getRequestURI().getRawQuery();
+            parseQuery(query, ret);
+        }
+
+        private void parsePostParameters(LinkedHashMap<String, String> ret) {
+            String query = Helper.streamToString(httpExchange.getRequestBody());
+            parseQuery(query, ret);
+        }
+
+        private void parseQuery(String query, LinkedHashMap<String, String> ret) {
             try {
-                data = response().getBytes(App.ENCODING);
+                if (query != null) {
+                    String pairs[] = query.split("[&]");
+
+                    for (String pair : pairs) {
+                        String param[] = pair.split("[=]");
+
+                        String key = null;
+                        String value = null;
+                        if (param.length > 0) {
+                            key = URLDecoder.decode(param[0], App.ENCODING);
+                        }
+
+                        if (param.length > 1) {
+                            value = URLDecoder.decode(param[1], App.ENCODING);
+                        }
+
+                        ret.put(key, value);
+                    }
+                }
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             }
+        }
+
+        @Override
+        public void handle(HttpExchange t) throws IOException {
             int code = 200;
+
+            this.httpExchange = t;
+            t.setAttribute(P_KEY, null);
+
+            byte[] data;
+            try {
+                data = response().getBytes(App.ENCODING);
+            } catch (Exception e) {
+                e.printStackTrace();
+                code = 500;
+                data = e.getMessage().getBytes(App.ENCODING);
+            }
             Headers hs = t.getResponseHeaders();
             hs.add("Accept-Ranges", "none");
             hs.add("Connection", "close");
