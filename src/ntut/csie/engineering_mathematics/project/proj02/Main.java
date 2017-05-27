@@ -141,3 +141,20 @@ public class Main {
         ml.eval("clearvars");
     }
 }
+
+/*
+syms x k t
+f = 2
+
+正弦波:
+E_Sin = symfun(sin(2*pi*f*t), t)
+fplot(E_Sin, [0, 2])
+
+方波:
+E_Squ=4/pi*symfun(symsum((sin((2*k-1)*2*pi*f*t))/(2*k-1), k, 1, 50), t)
+fplot(E_Squ, [0, 2])
+
+三角波:
+E_Tan=8/pi^2*symfun(symsum((-1)^k*(sin((2*k+1)*t*2*pi*f))/(2*k+1)^2, k, 0, 50), t)
+fplot(E_Tan, [0, 2])
+ */

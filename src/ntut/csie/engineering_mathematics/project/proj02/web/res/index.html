@@ -8,15 +8,124 @@
     <title>RLC Circuit</title>
 
     <link rel="stylesheet" href="css/jquery-ui.structure.min.css">
-    <link rel="stylesheet" href="css/jquery-ui.theme.min.css">
-
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="css/style.css">
 
     <script src="js/jquery-3.2.1.min.js"></script>
     <script src="js/jquery-ui.min.js"></script>
-
-
+    <script src="js/bootstrap.min.js"></script>
 </head>
 <body>
+<header>
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12">
+                <h1>RLC 電路模擬 - 工程數學專題 #2</h1>
+                <p>&nbsp;</p>
+            </div>
+        </div>
+    </div>
+</header>
+<hr style="margin-top: 0"/>
+<main>
+    <div class="container">
+        <div class="flex-row">
+            <div class="col-xs-8">
+                <div id="mainCanvas">
+                    <canvas id="canvas" width="100%" height="400"></canvas>
+                </div>
+            </div>
+            <aside class="col-xs-4">
+                <div class="panel panel-default">
+                    <div class="panel-heading">電源類型</div>
+                    <div class="panel-body">
+                        <form>
+                            <div class="row">
+                                <div class="col-xs-4">
+                                    <div class="form-group">
+                                        <label for="eKind">波形</label>
+                                        <select class="form-control" id="eKind" name="eKind">
+                                            <option value="1">正弦波</option>
+                                            <option value="2">方波</option>
+                                            <option value="3">三角波</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-xs-4">
+                                    <div class="form-group">
+                                        <label for="f">頻率 (Hz)</label>
+                                        <input type="number" value="1" id="f" name="f" class="form-control">
+                                    </div>
+                                </div>
+                                <div class="col-xs-4">
+                                    <div class="form-group">
+                                        <label for="vm">V<sub>m</sub> (V)</label>
+                                        <input type="number" value="5" id="vm" name="vm" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="panel panel-default" id="componentSrc">
+                    <div class="panel-heading">元件</div>
+                    <div class="panel-body">
+                        <section class="h">
+                            <p>橫</p>
+                            <div class="component-wrapper">
+                                <img src="images/r-0.png" class="component" data-type="R" data-deg="0"/>
+                                <div class="desc">電阻 (kΩ)</div>
+                            </div>
+                            <div class="component-wrapper">
+
+                                <img src="images/l-0.png" class="component" data-type="L" data-deg="0"/>
+                                <div class="desc">電感 (mL)</div>
+                            </div>
+                            <div class="component-wrapper">
+                                <img src="images/c-0.png" class="component" data-type="C" data-deg="0"/>
+                                <div class="desc">電容 (µC)</div>
+                            </div>
+                        </section>
+
+                        <hr/>
+                        <section class="v">
+                            <p>直</p>
+                            <div class="row">
+                                <div class="col-xs-4">
+
+                                    <img src="images/r-1.png" class="component" data-type="R" data-deg="1"/>
+                                </div>
+                                <div class="col-xs-4">
+
+                                    <img src="images/l-1.png" class="component" data-type="L" data-deg="1"/>
+                                </div>
+                                <div class="col-xs-4">
+                                    <img src="images/c-1.png" class="component" data-type="C" data-deg="1"/>
+
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-xs-4">
+                                    <div class="desc">電阻 (kΩ)</div>
+                                </div>
+                                <div class="col-xs-4">
+                                    <div class="desc">電感 (mL)</div>
+                                </div>
+                                <div class="col-xs-4">
+                                    <div class="desc">電容 (µC)</div>
+
+                                </div>
+                            </div>
+
+                        </section>
+
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+</main>
 
 <script src="js/main.js"></script>
 </body>
