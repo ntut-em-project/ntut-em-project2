@@ -47,6 +47,8 @@ main aside {
 #mainCanvas {
     position: relative;
     background: #FEFCF5;
+    overflow: hidden;
+    border: 1px solid #000;
 }
 
 #mainCanvas, #canvas {

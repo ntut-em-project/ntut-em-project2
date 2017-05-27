@@ -6,6 +6,7 @@ let AllComponent = [], AllConnection = [], AllNodeCollection = [];
     const cs = document.getElementById('canvas');
     const ctx = cs.getContext('2d');
     let ClickedNode = [];
+    let CurDragObj = null;
 
     class Connection {
         constructor(n1, n2) {
@@ -41,6 +42,7 @@ let AllComponent = [], AllConnection = [], AllNodeCollection = [];
     class Component {
         constructor(type, deg) {
             let ele = this.ele = new Image();
+            ele.draggable = true;
             ele.id = '_u_' + new Date().getTime();
             this.deg = deg;
             this.type = type;
@@ -87,11 +89,12 @@ let AllComponent = [], AllConnection = [], AllNodeCollection = [];
             this.ele.addEventListener('dragend', dragEnd);
 
             const t = this;
-            const b = this.ele.getBoundingClientRect();
             const _X = .15;
-            this.ele.addEventListener('click', function (e) {
+            this.ele.addEventListener('click', (e) => {
+                const b = this.ele.getBoundingClientRect();
                 let node = undefined;
                 let p = -1;
+
                 if (t.deg == 1) {
                     p = e.layerY / b.height;
                 } else {
@@ -102,6 +105,13 @@ let AllComponent = [], AllConnection = [], AllNodeCollection = [];
                 } else if (p < _X) {
                     node = t.Node1;
                 }
+
+                console.log(p, node);
+
+                if (!node) {
+                    return;
+                }
+
                 const FIRST = ClickedNode[0];
                 let same = false;
                 if (FIRST) {
@@ -124,9 +134,9 @@ let AllComponent = [], AllConnection = [], AllNodeCollection = [];
 
                     if (nc2) {
                         NodeCollection.merge(nc, nc2);
-                    } else {
-                        ClickedNode[0].c[k1] = ClickedNode[1].c[k2] = nc;
                     }
+
+                    ClickedNode[0].c[k1] = ClickedNode[1].c[k2] = nc;
 
                     nc.add(ClickedNode[0]);
                     nc.add(ClickedNode[1]);
@@ -238,11 +248,13 @@ let AllComponent = [], AllConnection = [], AllNodeCollection = [];
 
         ev.dataTransfer.setData("text", JSON.stringify(data));
         ev.dataTransfer.setDragImage(dragImg, refImg.width / 2, refImg.height / 2);
+        CurDragObj = this;
     }
 
     function dragEnd(ev) {
         this.classList.remove('dragging');
         CanvasContainer.removeClass('c-d');
+        CurDragObj = null;
     }
 
     function drop(ev) {
@@ -280,8 +292,6 @@ let AllComponent = [], AllConnection = [], AllNodeCollection = [];
             BCN(this, dragEnd, e);
         });
 
-    biCom.find('*').prop('draggable', false);
-
     function drawAllC() {
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
@@ -314,9 +324,12 @@ let AllComponent = [], AllConnection = [], AllNodeCollection = [];
     cs.width = cs.offsetWidth;
     cs.height = cs.offsetHeight;
     drawAllC();
-
-})
-();
+    {
+        let E = new Component('E', '1');
+        E.y = 400 / 2 - 128 / 2;
+        E.x = 50;
+    }
+})();
 
 
 function SolveODE(p, q, r, f, y0, yd0) {
