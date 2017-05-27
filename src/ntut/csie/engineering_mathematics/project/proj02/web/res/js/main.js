@@ -16,6 +16,20 @@ let AllComponent = [], AllConnection = [], AllNodeCollection = [];
         "#2B25C3",
         "#25BCC3"
     ];
+    const HaveInfo = (x) => {
+        return "RLC".indexOf(x) >= 0;
+    };
+
+    const drawNode = (node) => {
+        if (!node) return;
+        ctx.fillStyle = "#000";
+
+        ctx.beginPath();
+        ctx.moveTo(node.x, node.y);
+        ctx.arc(node.x, node.y, 5, 0, 2 * Math.PI);
+        ctx.closePath();
+        ctx.fill();
+    };
 
     class Connection {
         constructor(n1, n2) {
@@ -59,6 +73,8 @@ let AllComponent = [], AllConnection = [], AllNodeCollection = [];
             this.type = type;
             this.n1C = undefined;
             this.n2C = undefined;
+            this.value = 0;
+
 
             ele.classList.add('component');
 
@@ -67,6 +83,7 @@ let AllComponent = [], AllConnection = [], AllNodeCollection = [];
 
             ele.component = this;
             AllComponent.push(this);
+            this.idx = AllComponent.filter(c => c.type === type).length;
         }
 
         setDeg(deg) {
@@ -80,7 +97,8 @@ let AllComponent = [], AllConnection = [], AllNodeCollection = [];
         }
 
         showInfoPanel() {
-
+            if (!HaveInfo(this.type)) return;
+            console.log('show info panel');
         }
 
         _onUpdateTypeDeg() {
@@ -143,14 +161,14 @@ let AllComponent = [], AllConnection = [], AllNodeCollection = [];
                     let nc = ClickedNode[0].c[k1];
                     let nc2 = ClickedNode[1].c[k2];
 
-                    if(nc && nc2){
+                    if (nc && nc2) {
                         NodeCollection.merge(nc, nc2);
-                    }else if(!nc && nc2){
+                    } else if (!nc && nc2) {
                         nc = nc2;
-                    }else if(nc && !nc2){
+                    } else if (nc && !nc2) {
 
-                    }else if(!nc && !nc2){
-                        nc =  new NodeCollection();
+                    } else if (!nc && !nc2) {
+                        nc = new NodeCollection();
                     }
 
                     ClickedNode[0].c[k1] = ClickedNode[1].c[k2] = nc;
@@ -236,6 +254,36 @@ let AllComponent = [], AllConnection = [], AllNodeCollection = [];
 
             return ret;
         }
+
+        draw() {
+            const n1 = this.Node1, n2 = this.Node2;
+            drawNode(n1);
+            drawNode(n2);
+            ctx.font = "20px Arial";
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            let text = this.type;
+            let p = {};
+            const OFFSET = 25;
+
+            if (this.deg == 1) {
+                p.x = n1.x + OFFSET;
+                p.y = (n1.y + n2.y) / 2;
+            } else {
+                p.x = (n1.x + n2.x) / 2;
+                p.y = n1.y - OFFSET;
+            }
+
+            if (HaveInfo(this.type)) {
+                text += this.idx;
+            }else{
+                p.x -= OFFSET * 3;
+            }
+
+            ctx.fillText(text, p.x, p.y);
+
+
+        }
     }
 
     function drag(ev) {
@@ -312,19 +360,8 @@ let AllComponent = [], AllConnection = [], AllNodeCollection = [];
     function drawAllC() {
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
-        ctx.fillStyle = ctx.strokeStyle = "#000";
-        const drawNode = (node) => {
-            if (!node) return;
-            ctx.beginPath();
-            ctx.moveTo(node.x, node.y);
-            ctx.arc(node.x, node.y, 5, 0, 2 * Math.PI);
-            ctx.closePath();
-            ctx.fill();
-        };
-
         AllComponent.forEach(c => {
-            drawNode(c.Node1);
-            drawNode(c.Node2);
+            c.draw();
         });
 
         AllConnection.forEach(c => {
