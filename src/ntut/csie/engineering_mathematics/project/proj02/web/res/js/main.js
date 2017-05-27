@@ -3,8 +3,10 @@
 let AllComponent = [], AllConnection = [], AllNodeCollection = [];
 (function () {
     const CanvasContainer = $("#mainCanvas");
+    const dialog = $('#myModal');
     const cs = document.getElementById('canvas');
     const ctx = cs.getContext('2d');
+
     let ClickedNode = [];
     let CurDragObj = null;
     const COLORS = [
@@ -16,6 +18,16 @@ let AllComponent = [], AllConnection = [], AllNodeCollection = [];
         "#2B25C3",
         "#25BCC3"
     ];
+    const UNIT = {
+        'R': 'kΩ',
+        'L': 'mL',
+        'C': 'µC',
+        'E': 'V'
+    };
+    const INIT_V = {
+        'L': 'i<sub>l</sub>(t=0)',
+        'C': 'v<sub>c</sub>(t=0)',
+    };
     const HaveInfo = (x) => {
         return "RLC".indexOf(x) >= 0;
     };
@@ -73,7 +85,8 @@ let AllComponent = [], AllConnection = [], AllNodeCollection = [];
             this.type = type;
             this.n1C = undefined;
             this.n2C = undefined;
-            this.value = 0;
+            this.value = 1;
+            this.initValue = 0;
 
 
             ele.classList.add('component');
@@ -99,6 +112,29 @@ let AllComponent = [], AllConnection = [], AllNodeCollection = [];
         showInfoPanel() {
             if (!HaveInfo(this.type)) return;
             console.log('show info panel');
+            dialog.data('c', this);
+            dialog.modal('show');
+
+            dialog.find('#m-bdy').html(`
+            <form class="form-inline">
+<div class="form-group">
+    <label>數值</label>
+    <div>
+        <input value="${this.value}" type="number" class="form-control" id="f-v"/>
+        <span>${UNIT[this.type]}</span>    
+    </div>
+</div>
+<hr/>
+<div class="form-group" ${INIT_V[this.type] ? '' : 'hidden'}>
+    <label>初始值</label>
+    <div>
+        <span>${INIT_V[this.type]}</span>
+        <input value="${this.initValue}" type="number" class="form-control" id="f-iv"/>
+    </div>
+    
+</div>
+            </form>
+            `);
         }
 
         _onUpdateTypeDeg() {
@@ -119,6 +155,9 @@ let AllComponent = [], AllConnection = [], AllNodeCollection = [];
 
             const t = this;
             const _X = .15;
+            this.ele.addEventListener('dblclick', (e) => {
+                this.showInfoPanel();
+            });
             this.ele.addEventListener('click', (e) => {
                 const b = this.ele.getBoundingClientRect();
                 let node = undefined;
@@ -276,7 +315,7 @@ let AllComponent = [], AllConnection = [], AllNodeCollection = [];
 
             if (HaveInfo(this.type)) {
                 text += this.idx;
-            }else{
+            } else {
                 p.x -= OFFSET * 3;
             }
 
@@ -356,6 +395,24 @@ let AllComponent = [], AllConnection = [], AllNodeCollection = [];
         .bind('dragend', function (e) {
             BCN(this, dragEnd, e);
         });
+
+    dialog.on('hidden.bs.modal', (e) => {
+        const c = dialog.data('c');
+
+        if (c) {
+            let v = $("#f-v").val() * 1;
+            let iv = $("#f-iv").val() * 1;
+            c.value = v;
+            c.initValue = iv;
+        }
+
+        dialog.data('c', null);
+    });
+
+    dialog.find('#rot_c').click(() => {
+        const c = dialog.data('c');
+        c.setDeg(1 - c.deg);
+    });
 
     function drawAllC() {
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);

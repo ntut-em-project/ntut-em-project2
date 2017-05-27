@@ -10,6 +10,10 @@
     -webkit-user-drag: element;
 }
 
+[hidden] {
+    display: none !important;
+}
+
 body {
     font: 400 16px/1.5 'Noto Sans CJK TC', 'Noto Sans TC', "Microsoft JhengHei UI", "Microsoft YaHei UI", "Microsoft JhengHei", "Microsoft YaHei", Arial, Helvetica, sans-serif;
 }
