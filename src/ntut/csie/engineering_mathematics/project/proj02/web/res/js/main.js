@@ -443,6 +443,8 @@ let AllComponent = [], AllConnection = [], AllNodeCollection = [];
         E.y = 400 / 2 - 128 / 2;
         E.x = 50;
     }
+
+    $("form").submit((e) => e.preventDefault());
 })();
 
 
@@ -484,6 +486,22 @@ function GetFunctionPoints(func, start, end, step) {
             success: function (r) {
                 console.log("Points for eq: ", func, "From", start, "To", end);
                 console.log(r);
+                a(r);
+            },
+            error: function (e) {
+                b(e);
+            }
+        });
+    });
+}
+
+function PrepareVars(obj){
+    return new Promise((a, b) => {
+        $.ajax("/PrepareVars", {
+            method: "POST",
+            data: obj,
+            dataType: "json",
+            success: function (r) {
                 a(r);
             },
             error: function (e) {

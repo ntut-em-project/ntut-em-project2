@@ -13,6 +13,7 @@ import java.util.concurrent.ExecutionException;
 
 public class Main {
     private static MatlabEngine ml = null;
+    private static String PreRunCmd = null;
 
     @Nullable
     private static MatlabEngine GetMatlab() throws InterruptedException, EngineException {
@@ -69,6 +70,31 @@ public class Main {
                 Object res = GetFunctionPoints(func, start, end, step);
 
                 return gson.toJson(res);
+            }
+
+            @Override
+            protected String getExt() {
+                return "json";
+            }
+        });
+
+        server.addRoute("/PrepareVars", new WebServer.WebServerResponse() {
+            @Override
+            protected String response() throws Exception {
+                Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                StringBuilder sb = new StringBuilder();
+                PreRunCmd = null;
+                final Map<String, String> params = this.getParameters();
+                for (Map.Entry<String, String> entry : params.entrySet()) {
+                    if (entry.getKey().replaceAll("\\d+", "").length() == 0) {
+                        sb.append(entry.getValue() + ";");
+                    } else {
+                        sb.append(String.format("%s = %s;", entry.getKey(), entry.getValue()));
+                    }
+                }
+                PreRunCmd = sb.toString();
+
+                return gson.toJson(true);
             }
 
             @Override
@@ -139,6 +165,10 @@ public class Main {
 
     static void PrepareMatlab(MatlabEngine ml) throws ExecutionException, InterruptedException {
         ml.eval("clearvars");
+        if (PreRunCmd != null) {
+            ml.eval(PreRunCmd);
+        }
+        PreRunCmd = null;
     }
 }
 
