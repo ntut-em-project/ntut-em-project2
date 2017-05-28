@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import static ntut.csie.engineering_mathematics.project.proj02.config.App.ITER_COUNT;
+import static ntut.csie.engineering_mathematics.project.proj02.config.App.VPA_DOT;
 
 
 public class Main {
@@ -184,7 +185,8 @@ public class Main {
         ml.eval(sb1.toString());
         ml.eval("conds = [" + sb2.toString() + "];\n");
 
-        ml.eval("ySol(t) = dsolve(ode, conds)\n");
+        ml.eval("ySol(t) = dsolve(ode, conds);\n");
+        ml.eval("ySol = vpa(ySol, " + VPA_DOT + ");\n");
         ml.eval("ySol = simplify(ySol, " + App.SIMPLIFY_LIMIT + ")\n");
         ml.eval("ySolChar = char(ySol);\n");
 
@@ -227,7 +229,7 @@ public class Main {
                 ml.eval(type + "(t) = 0 * t;");
         }
 
-        // ml.eval(type + " = vpa(" + type + ", 15);");
+        ml.eval(type + " = vpa(" + type + ", " + VPA_DOT + ");");
         ml.eval(type + "_char = char(" + type + ");");
 
         return ml.getVariable(type + "_char");

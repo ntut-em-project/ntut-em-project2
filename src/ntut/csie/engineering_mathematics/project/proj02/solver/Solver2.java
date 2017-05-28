@@ -1,11 +1,12 @@
 package ntut.csie.engineering_mathematics.project.proj02.solver;
 
 import com.mathworks.engine.MatlabEngine;
-import ntut.csie.engineering_mathematics.project.proj02.config.App;
 
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+
+import static ntut.csie.engineering_mathematics.project.proj02.config.App.VPA_DOT;
 
 /**
  * Created by s911415 on 2017/05/28.
@@ -35,12 +36,12 @@ public class Solver2 extends SolverAbstract {
         prepareVar("L", L);
         prepareVar("C", C);
 
-        SolODE("1", "1/(R*C)", "1/(L*C)", "1/L * diff(I, t)", V0, String.format("(0) = (I(0) - %s / R - %s) / C", V0, I0));
-        ml.eval("v(t) = ySol;");
+        SolODE("1", "1/(R*C)", "1/(L*C)", "1/L * Dy", V0, String.format("(0) = (I(0) - %s / R - %s) / C", V0, I0));
+        ml.eval("v(t) = vpa(ySol, " + VPA_DOT + ");");
         ml.eval("syms v_R(t) v_L(t) v_C(t) i_R(t) i_L(t) i_C(t);");
-        ml.eval("i_R(t) = simplify(v / R, " + App.SIMPLIFY_LIMIT + ");");
-        ml.eval("i_C(t) = simplify(C * diff(v), " + App.SIMPLIFY_LIMIT + ");");
-        ml.eval("i_L(t) = simplify(I - i_R - i_C, " + App.SIMPLIFY_LIMIT + ");");
+        ml.eval("i_R(t) = (vpa(v / R, " + VPA_DOT + "));");
+        ml.eval("i_C(t) = (vpa(C * diff(v), " + VPA_DOT + "));");
+        ml.eval("i_L(t) = (vpa(I - i_R - i_C, " + VPA_DOT + "));");
         final String key[] = {"R", "L", "C"};
 
         prepareVar("v_ch", "char(v)");
