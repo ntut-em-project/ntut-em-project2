@@ -10,10 +10,10 @@ import java.util.concurrent.ExecutionException;
 /**
  * Created by s911415 on 2017/05/28.
  */
-public class Solver1 extends SolverAbstract {
+public class Solver2 extends SolverAbstract {
     public final String R, L, C, I0, V0;
 
-    public Solver1(MatlabEngine ml, String r, String l, String c, String i0, String v0) {
+    public Solver2(MatlabEngine ml, String r, String l, String c, String i0, String v0) {
         super(ml);
         R = r;
         L = l;
@@ -35,21 +35,21 @@ public class Solver1 extends SolverAbstract {
         prepareVar("L", L);
         prepareVar("C", C);
 
-        SolODE("1", "R/L", "1/(L*C)", "1/L * diff(E, t)", I0, String.format("(0) = E(0) - R * %s - %s", I0, V0));
-        ml.eval("i(t) = ySol;");
+        SolODE("1", "1/(R*C)", "1/(L*C)", "1/L * diff(I, t)", V0, String.format("(0) = (I(0) - %s / R - %s) / C", V0, I0));
+        ml.eval("v(t) = ySol;");
         ml.eval("syms v_R(t) v_L(t) v_C(t) i_R(t) i_L(t) i_C(t);");
-        ml.eval("v_R(t) = simplify(R * i, " + App.SIMPLIFY_LIMIT + ");");
-        ml.eval("v_L(t) = simplify(L * diff(i), " + App.SIMPLIFY_LIMIT + ");");
-        ml.eval("v_C(t) = simplify(E - v_R - v_L, " + App.SIMPLIFY_LIMIT + ");");
+        ml.eval("i_R(t) = simplify(v / R, " + App.SIMPLIFY_LIMIT + ");");
+        ml.eval("i_C(t) = simplify(C * diff(v), " + App.SIMPLIFY_LIMIT + ");");
+        ml.eval("i_L(t) = simplify(I - i_R - i_C, " + App.SIMPLIFY_LIMIT + ");");
         final String key[] = {"R", "L", "C"};
 
-        prepareVar("i_ch", "char(i)");
-        putRet(ret, "i", ml.getVariable("i_ch"));
+        prepareVar("v_ch", "char(v)");
+        putRet(ret, "v", ml.getVariable("v_ch"));
 
         for (final String k : key) {
-            final String pk = "v_" + k + "_c";
-            prepareVar(pk, "char(v_" + k + ")");
-            putRet(ret, "v_" + k, ml.getVariable(pk));
+            final String pk = "i_" + k + "_c";
+            prepareVar(pk, "char(i_" + k + ")");
+            putRet(ret, "i_" + k, ml.getVariable(pk));
         }
 
         return ret;

@@ -114,10 +114,19 @@
                     </div>
                 </div>
                 <div class="panel panel-default">
-                    <div class="panel-heading">電源類型</div>
+                    <div class="panel-heading">電源</div>
                     <div class="panel-body">
-                        <form>
+                        <form id="power-type" class="E">
                             <div class="row">
+                                <div class="col-xs-12">
+                                    <div class="form-group">
+                                        <label for="eType">類型</label>
+                                        <select class="form-control" id="eType" name="eType">
+                                            <option value="E">電壓源</option>
+                                            <option value="I">電流源</option>
+                                        </select>
+                                    </div>
+                                </div>
                                 <div class="col-xs-6">
                                     <div class="form-group">
                                         <label for="eKind">波形</label>
@@ -136,14 +145,14 @@
                                 </div>
                                 <div class="col-xs-6">
                                     <div class="form-group">
-                                        <label for="vpp">V<sub>PP</sub> (V)</label>
-                                        <input type="number" value="10" id="vpp" name="vpp" class="form-control">
+                                        <label for="pp"><sub>PP</sub></label>
+                                        <input type="text" value="10" id="pp" name="pp" class="form-control">
                                     </div>
                                 </div>
                                 <div class="col-xs-6">
                                     <div class="form-group">
-                                        <label for="vdc">V<sub>DC</sub> (V)</label>
-                                        <input type="number" value="0" id="vdc" name="vdc" class="form-control">
+                                        <label for="dc"><sub>DC</sub></label>
+                                        <input type="text" value="0" id="dc" name="dc" class="form-control">
                                     </div>
                                 </div>
                             </div>

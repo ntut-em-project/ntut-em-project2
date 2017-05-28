@@ -9,6 +9,7 @@ const TYPES = [
             R: 1,
             L: 1,
             C: 1,
+            E: 1,
             node: 4
         },
     },
@@ -20,6 +21,7 @@ const TYPES = [
             R: 1,
             L: 1,
             C: 1,
+            I: 1,
             node: 2,
         }
     },
@@ -30,6 +32,8 @@ function getCurConds() {
         R: 0,
         L: 0,
         C: 0,
+        E: 0,
+        I: 0,
         node: 0
     };
 
@@ -64,15 +68,16 @@ function getCurType() {
     return null;
 }
 
-function getEeq() {
+function getPowerEQ() {
     let info = {
+        type: $("#eType").val(),
         kind: $("#eKind").val(),
         f: $("#f").val(),
-        vpp: $("#vpp").val(),
-        vdc: $("#vdc").val(),
+        pp: $("#pp").val(),
+        dc: $("#dc").val(),
     };
 
-    return ajax("/getEeq", {
+    return ajax("/getPowerEQ", {
         data: info,
         type: "POST",
         dataType: "json"
@@ -99,16 +104,23 @@ function run() {
         });
         _lastG.length = 0;
     }
-    getEeq().then((Eeq) => {
-        addEq("E", Eeq);
-        eqs.push("E");
+    const POWER_TYPE = $("#eType").val();
+    const F = $("#f").val() * 1;
+    let T = 1 / F;
+    if (T === Infinity) T = 0;
+
+    getPowerEQ().then((Eeq) => {
+        addEq(POWER_TYPE, Eeq);
+        eqs.push(POWER_TYPE);
     }).then(() => {
         const
             type = getCurType(),
             R = getFirstComponentByType('R') || {},
             L = getFirstComponentByType('L') || {},
             C = getFirstComponentByType('C') || {};
-
+        if (!type) {
+            return new Promise(a => a([]));
+        }
         let info = {
             type: type.id,
             R: R.value,
@@ -123,6 +135,7 @@ function run() {
             type: "POST",
             dataType: "json"
         }).then(arr => {
+            if(!arr) return;
             arr.forEach(eq => {
                 addEq(eq.key, eq.value);
                 eqs.push(eq.key);
@@ -133,7 +146,7 @@ function run() {
         let p = [];
         eqs.forEach(eq => {
             p.push(
-                GetFunctionPoints(eq, 0, 20, .05).then(ret => {
+                GetFunctionPoints(eq, 0, T * 50, .005).then(ret => {
                     return {
                         data: ret,
                         label: eq
@@ -153,36 +166,41 @@ function run() {
             return s.startsWith('i');
         });
 
-        _lastG.push(drawPointArray(EArr, document.getElementById("fplot-v"), "Voltage"));
-        _lastG.push(drawPointArray(IArr, document.getElementById("fplot-i"), "Current"));
+        _lastG.push(drawPointArray(EArr, document.getElementById("fplot-v"), "Voltage", T));
+        _lastG.push(drawPointArray(IArr, document.getElementById("fplot-i"), "Current", T));
     });
 }
 
-function drawPointArray(arr, container, title) {
+function drawPointArray(arr, container, title, t) {
+    container.innerHTML = '';
+    let nC = container.cloneNode(false);
+    container.parentNode.insertBefore(nC, container);
+    container.parentNode.removeChild(container);
 
+    container = nC;
     let
         options,
         start,
         graph;
-
-
     options = {
-        xaxis: {min: 0, max: 5},
+        xaxis: {min: 0, max: 3 * t},
         title: title
     };
 
     // Draw graph with default options, overwriting with passed options
     function drawGraph(opts) {
-
+        let __ret = {
+            g: undefined
+        };
         // Clone the options, so the 'options' variable always keeps intact.
         var o = Flotr._.extend(Flotr._.clone(options), opts || {});
-
-        // Return a new graph.
-        return Flotr.draw(
+        graph = Flotr.draw(
             container,
             arr,
             o
         );
+
+        return graph;
     }
 
     // Actually draw the graph.

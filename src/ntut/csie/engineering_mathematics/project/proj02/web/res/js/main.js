@@ -347,7 +347,7 @@ function ajax(url, setting) {
             }
 
             if (HaveInfo(this.type)) {
-                text += this.idx;
+                text = this.value + UNIT[this.type];
             } else {
                 p.x -= OFFSET * 3;
             }
@@ -443,8 +443,8 @@ function ajax(url, setting) {
         const c = dialog.data('c');
 
         if (c) {
-            let v = $("#f-v").val() * 1;
-            let iv = $("#f-iv").val() * 1;
+            let v = $("#f-v").val();
+            let iv = $("#f-iv").val();
             c.value = v;
             c.initValue = iv;
         }
@@ -487,9 +487,17 @@ function ajax(url, setting) {
         let E = new Component('E', '1');
         E.y = 400 / 2 - 128 / 2;
         E.x = 50;
+        const pt = $("#power-type");
+        $("#eType").change(function (e) {
+            pt.removeClass("E");
+            pt.removeClass("I");
+            pt.addClass(this.value);
+            E.setType(this.value);
+        });
     }
 
     $("form").submit((e) => e.preventDefault());
+
 })();
 
 function SolveODE(p, q, r, f, y0, yd0) {

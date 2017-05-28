@@ -117,3 +117,11 @@ main aside {
 .fplot{
     height: 400px;
 }
+
+#power-type.E label[for="pp"]:before,#power-type.E label[for="dc"]:before{
+    content:"V";
+}
+
+#power-type.I label[for="pp"]:before,#power-type.I label[for="dc"]:before{
+    content:"I";
+}

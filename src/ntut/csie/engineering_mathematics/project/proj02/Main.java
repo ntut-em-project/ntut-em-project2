@@ -7,6 +7,7 @@ import com.mathworks.engine.MatlabEngine;
 import com.sun.istack.internal.Nullable;
 import ntut.csie.engineering_mathematics.project.proj02.config.App;
 import ntut.csie.engineering_mathematics.project.proj02.solver.Solver1;
+import ntut.csie.engineering_mathematics.project.proj02.solver.Solver2;
 import ntut.csie.engineering_mathematics.project.proj02.solver.SolverInterface;
 import ntut.csie.engineering_mathematics.project.proj02.web.server.WebServer;
 
@@ -108,13 +109,13 @@ public class Main {
             }
         });
 
-        server.addRoute("/getEeq", new WebServer.WebServerResponse() {
+        server.addRoute("/getPowerEQ", new WebServer.WebServerResponse() {
             @Override
             protected String response() throws Exception {
                 Gson gson = new GsonBuilder().setPrettyPrinting().create();
                 final Map<String, String> params = this.getParameters();
 
-                return gson.toJson(getEeq(params.get("kind"), params.get("f"), params.get("vpp"), params.get("vdc")));
+                return gson.toJson(getPowerEQ(params.get("type"), params.get("kind"), params.get("f"), params.get("pp"), params.get("dc")));
             }
 
             @Override
@@ -184,7 +185,7 @@ public class Main {
         ml.eval("conds = [" + sb2.toString() + "];\n");
 
         ml.eval("ySol(t) = dsolve(ode, conds)\n");
-        ml.eval("ySol = simplify(ySol, " + App.SIMPLIFY_COUNT + ")\n");
+        ml.eval("ySol = simplify(ySol, " + App.SIMPLIFY_LIMIT + ")\n");
         ml.eval("ySolChar = char(ySol);\n");
 
         return ml.getVariable("ySolChar");
@@ -198,37 +199,38 @@ public class Main {
         ml.eval(String.format("if exist (\"%s\")>0,F=matlabFunction(%s),else,F=@(t) (%s),end;", func, func, func));
         ml.eval(String.format("input = [%s:%s:%s]';", start, step, end));
         ml.eval("result = arrayfun(F, input);");
-        ml.eval("out = [input result]");
+        ml.eval("out = [input result];");
 
         return ml.getVariable("out");
     }
 
-    private static Object getEeq(String kind, String f, String vpp, String vdc) throws ExecutionException, InterruptedException {
+    private static Object getPowerEQ(String type, String kind, String f, String vpp, String vdc) throws ExecutionException, InterruptedException {
         MatlabEngine ml = GetMatlab();
         PrepareMatlab(ml);
-        ml.eval("syms x k t E(t);");
+        ml.eval("clearvars");
+        ml.eval("syms x k t E(t) I(t);");
         ml.eval(String.format("f = %s;", f));
-        ml.eval(String.format("Vpp = %s;", vpp));
-        ml.eval(String.format("Vdc = %s;", vdc));
-        ml.eval("Vm = Vpp / 2;");
+        ml.eval(String.format("in_pp = %s;", vpp));
+        ml.eval(String.format("in_dc = %s;", vdc));
+        ml.eval("in_m = in_pp / 2;");
         switch (kind) {
             case "1"://正弦波
-                ml.eval("E(t) = Vdc + Vm * symfun(sin(2*pi*f*t), t);");
+                ml.eval(type + "(t) = in_dc + in_m * symfun(sin(2*pi*f*t), t);");
                 break;
             case "2"://方波
-                ml.eval("E(t) = Vdc + Vm * 4/pi*symfun(symsum((sin((2*k-1)*2*pi*f*t))/(2*k-1), k, 1, " + String.valueOf(ITER_COUNT) + "), t);");
+                ml.eval(type + "(t) = in_dc + in_m * 4/pi*symfun(symsum((sin((2*k-1)*2*pi*f*t))/(2*k-1), k, 1, " + String.valueOf(ITER_COUNT) + "), t);");
                 break;
             case "3"://三角波
-                ml.eval("E(t) = Vdc + Vm * 8/pi^2*symfun(symsum((-1)^k*(sin((2*k+1)*t*2*pi*f))/(2*k+1)^2, k, 0, " + String.valueOf(ITER_COUNT) + "), t);");
+                ml.eval(type + "(t) = in_dc + in_m * 8/pi^2*symfun(symsum((-1)^k*(sin((2*k+1)*t*2*pi*f))/(2*k+1)^2, k, 0, " + String.valueOf(ITER_COUNT) + "), t);");
                 break;
             default:
-                ml.eval("E(t) = 0 * t;");
+                ml.eval(type + "(t) = 0 * t;");
         }
 
-        ml.eval("E = vpa(E, 15);");
-        ml.eval("Ec = char(E);");
+        // ml.eval(type + " = vpa(" + type + ", 15);");
+        ml.eval(type + "_char = char(" + type + ");");
 
-        return ml.getVariable("Ec");
+        return ml.getVariable(type + "_char");
     }
 
     @Nullable
@@ -245,6 +247,8 @@ public class Main {
         switch (type) {
             case "1":
                 return new Solver1(ml, R, L, C, il0, vc0);
+            case "2":
+                return new Solver2(ml, R, L, C, il0, vc0);
         }
 
         return null;
