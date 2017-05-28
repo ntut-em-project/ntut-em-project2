@@ -25,6 +25,16 @@ const TYPES = [
             node: 2,
         }
     },
+    {
+        name: 'LC',
+        kind: 'SP',
+        id: 3,
+        conds: {
+            L: 1,
+            C: 1,
+            node: 2,
+        }
+    },
 ];
 
 function getCurConds() {

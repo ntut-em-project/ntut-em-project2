@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+import static ntut.csie.engineering_mathematics.project.proj02.config.App.SIMPLIFY_LIMIT;
 import static ntut.csie.engineering_mathematics.project.proj02.config.App.VPA_DOT;
 
 /**
@@ -39,9 +40,9 @@ public class Solver2 extends SolverAbstract {
         SolODE("1", "1/(R*C)", "1/(L*C)", "1/L * Dy", V0, String.format("(0) = (I(0) - %s / R - %s) / C", V0, I0));
         ml.eval("v(t) = vpa(ySol, " + VPA_DOT + ");");
         ml.eval("syms v_R(t) v_L(t) v_C(t) i_R(t) i_L(t) i_C(t);");
-        ml.eval("i_R(t) = (vpa(v / R, " + VPA_DOT + "));");
-        ml.eval("i_C(t) = (vpa(C * diff(v), " + VPA_DOT + "));");
-        ml.eval("i_L(t) = (vpa(I - i_R - i_C, " + VPA_DOT + "));");
+        ml.eval("i_R(t) = simplify(vpa(v / R, " + VPA_DOT + "), " + SIMPLIFY_LIMIT + ");");
+        ml.eval("i_C(t) = simplify(vpa(C * diff(v), " + VPA_DOT + ")" + SIMPLIFY_LIMIT + ");");
+        ml.eval("i_L(t) = simplify(vpa(I - i_R - i_C, " + VPA_DOT + ")" + SIMPLIFY_LIMIT + ");");
         final String key[] = {"R", "L", "C"};
 
         prepareVar("v_ch", "char(v)");

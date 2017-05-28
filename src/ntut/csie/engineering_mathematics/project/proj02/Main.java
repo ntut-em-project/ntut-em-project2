@@ -8,6 +8,7 @@ import com.sun.istack.internal.Nullable;
 import ntut.csie.engineering_mathematics.project.proj02.config.App;
 import ntut.csie.engineering_mathematics.project.proj02.solver.Solver1;
 import ntut.csie.engineering_mathematics.project.proj02.solver.Solver2;
+import ntut.csie.engineering_mathematics.project.proj02.solver.Solver3;
 import ntut.csie.engineering_mathematics.project.proj02.solver.SolverInterface;
 import ntut.csie.engineering_mathematics.project.proj02.web.server.WebServer;
 
@@ -206,7 +207,7 @@ public class Main {
         return ml.getVariable("out");
     }
 
-    private static Object getPowerEQ(String type, String kind, String f, String vpp, String vdc) throws ExecutionException, InterruptedException {
+    public static Object getPowerEQ(String type, String kind, String f, String vpp, String vdc) throws ExecutionException, InterruptedException {
         MatlabEngine ml = GetMatlab();
         PrepareMatlab(ml);
         ml.eval("clearvars");
@@ -251,6 +252,8 @@ public class Main {
                 return new Solver1(ml, R, L, C, il0, vc0);
             case "2":
                 return new Solver2(ml, R, L, C, il0, vc0);
+            case "3":
+                return new Solver3(ml, L, C, il0, vc0);
         }
 
         return null;
