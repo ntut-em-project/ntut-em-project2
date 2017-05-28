@@ -47,6 +47,18 @@ const TYPES = [
             node: 3,
         }
     },
+    {
+        name: 'RC',
+        kind: 'P',
+        id: 5,
+        conds: {
+            R: 1,
+            C: 1,
+            L: 0,
+            I: 1,
+            node: 2,
+        }
+    },
 ];
 
 function getCurConds() {

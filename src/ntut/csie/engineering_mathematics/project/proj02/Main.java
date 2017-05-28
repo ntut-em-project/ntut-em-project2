@@ -253,6 +253,8 @@ public class Main {
                 return new Solver3(ml, L, C, il0, vc0);
             case "4":
                 return new Solver4(ml, R, C, vc0);
+            case "5":
+                return new Solver5(ml, R, C, vc0);
         }
 
         return null;
