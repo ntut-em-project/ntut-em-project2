@@ -23,6 +23,11 @@ public abstract class SolverAbstract implements SolverInterface {
         Main.SolODE(p, q, r, f, y0, yd0);
     }
 
+    protected static void SolODE(String a, String b, String f, String y0)
+            throws ExecutionException, InterruptedException {
+        Main.SolODE("0", a, b,  f, y0, null);
+    }
+
     protected void prepareVar(String var, String val) throws ExecutionException, InterruptedException {
         ml.eval(String.format("%s = %s;", var, val));
     }

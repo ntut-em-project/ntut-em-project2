@@ -32,7 +32,19 @@ const TYPES = [
         conds: {
             L: 1,
             C: 1,
-            node: 2,
+            node: 3,
+        }
+    },
+    {
+        name: 'RC',
+        kind: 'S',
+        id: 4,
+        conds: {
+            R: 1,
+            C: 1,
+            L: 0,
+            E: 1,
+            node: 3,
         }
     },
 ];

@@ -6,10 +6,7 @@ import com.mathworks.engine.EngineException;
 import com.mathworks.engine.MatlabEngine;
 import com.sun.istack.internal.Nullable;
 import ntut.csie.engineering_mathematics.project.proj02.config.App;
-import ntut.csie.engineering_mathematics.project.proj02.solver.Solver1;
-import ntut.csie.engineering_mathematics.project.proj02.solver.Solver2;
-import ntut.csie.engineering_mathematics.project.proj02.solver.Solver3;
-import ntut.csie.engineering_mathematics.project.proj02.solver.SolverInterface;
+import ntut.csie.engineering_mathematics.project.proj02.solver.*;
 import ntut.csie.engineering_mathematics.project.proj02.web.server.WebServer;
 
 import java.util.Map;
@@ -254,6 +251,8 @@ public class Main {
                 return new Solver2(ml, R, L, C, il0, vc0);
             case "3":
                 return new Solver3(ml, L, C, il0, vc0);
+            case "4":
+                return new Solver4(ml, R, C, vc0);
         }
 
         return null;
