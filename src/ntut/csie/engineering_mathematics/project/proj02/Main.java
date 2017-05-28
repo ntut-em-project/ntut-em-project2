@@ -40,7 +40,7 @@ public class Main {
         server.addRoute("/SolODE", new WebServer.WebServerResponse() {
             @Override
             protected String response() throws Exception {
-                Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                Gson gson = GetGson();
                 final Map<String, String> params = this.getParameters();
                 String p, q, r, f, y0, yd0;
                 p = params.get("p");
@@ -64,7 +64,7 @@ public class Main {
         server.addRoute("/GetPts", new WebServer.WebServerResponse() {
             @Override
             protected String response() throws Exception {
-                Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                Gson gson = GetGson();
                 final Map<String, String> params = this.getParameters();
                 String func, start, end, step;
                 func = params.get("func");
@@ -86,7 +86,7 @@ public class Main {
         server.addRoute("/PrepareVars", new WebServer.WebServerResponse() {
             @Override
             protected String response() throws Exception {
-                Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                Gson gson = GetGson();
                 StringBuilder sb = new StringBuilder();
                 PreRunCmd = null;
                 final Map<String, String> params = this.getParameters();
@@ -111,7 +111,7 @@ public class Main {
         server.addRoute("/getPowerEQ", new WebServer.WebServerResponse() {
             @Override
             protected String response() throws Exception {
-                Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                Gson gson = GetGson();
                 final Map<String, String> params = this.getParameters();
 
                 return gson.toJson(getPowerEQ(params.get("type"), params.get("kind"), params.get("f"), params.get("pp"), params.get("dc")));
@@ -126,7 +126,7 @@ public class Main {
         server.addRoute("/getAlleq", new WebServer.WebServerResponse() {
             @Override
             protected String response() throws Exception {
-                Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                Gson gson = GetGson();
                 final Map<String, String> params = this.getParameters();
                 SolverInterface sol = getAllEqInstance(params);
 
@@ -270,6 +270,18 @@ public class Main {
             ml.eval(PreRunCmd);
         }
         PreRunCmd = null;
+    }
+
+    private static Gson g = null;
+
+    static Gson GetGson() {
+        if (g != null) return g;
+        g = new GsonBuilder()
+                .setPrettyPrinting()
+                .serializeSpecialFloatingPointValues()
+                .create();
+
+        return g;
     }
 }
 
