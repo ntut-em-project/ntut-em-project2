@@ -6,4 +6,6 @@ package ntut.csie.engineering_mathematics.project.proj02.config;
 public class App {
     public static final String ENCODING = "UTF-8";
     public static final boolean DEBUG = true;
+    public static final String SIMPLIFY_COUNT = "2";
+    public static final int ITER_COUNT = 5;
 }

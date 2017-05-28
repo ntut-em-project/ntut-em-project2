@@ -38,9 +38,12 @@ function ajax(url, setting) {
         "#25BCC3"
     ];
     const UNIT = {
-        'R': 'kΩ',
-        'L': 'mL',
-        'C': 'µC',
+        // 'R': 'kΩ',
+        // 'L': 'mL',
+        // 'C': 'µC',
+        'R': 'Ω',
+        'L': 'L',
+        'C': 'C',
         'E': 'V'
     };
     const INIT_V = {
@@ -149,7 +152,7 @@ function ajax(url, setting) {
 <div class="form-group">
     <label>數值</label>
     <div>
-        <input value="${this.value}" type="number" class="form-control" id="f-v"/>
+        <input value="${this.value}" type="text" autofocus class="form-control" id="f-v"/>
         <span>${UNIT[this.type]}</span>    
     </div>
 </div>
@@ -183,7 +186,7 @@ function ajax(url, setting) {
             this.ele.addEventListener('dragend', dragEnd);
 
             const t = this;
-            const _X = .15;
+            const _X = .30;
             this.ele.addEventListener('dblclick', (e) => {
                 this.showInfoPanel();
             });
@@ -405,6 +408,10 @@ function ajax(url, setting) {
         console.log(tb, layerX, layerY);
         c.x = layerX - data.size.width / 2;
         c.y = layerY - data.size.height / 2;
+
+        if (!data.id) {
+            c.showInfoPanel();
+        }
     }
 
     function allowDrop(ev) {
@@ -443,6 +450,8 @@ function ajax(url, setting) {
         }
 
         dialog.data('c', null);
+    }).on('shown.bs.modal', function () {
+        $('#f-v').select();
     });
 
     dialog.find('#rot_c').click(() => {

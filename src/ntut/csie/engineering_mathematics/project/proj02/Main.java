@@ -5,10 +5,15 @@ import com.google.gson.GsonBuilder;
 import com.mathworks.engine.EngineException;
 import com.mathworks.engine.MatlabEngine;
 import com.sun.istack.internal.Nullable;
+import ntut.csie.engineering_mathematics.project.proj02.config.App;
+import ntut.csie.engineering_mathematics.project.proj02.solver.Solver1;
+import ntut.csie.engineering_mathematics.project.proj02.solver.SolverInterface;
 import ntut.csie.engineering_mathematics.project.proj02.web.server.WebServer;
 
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+
+import static ntut.csie.engineering_mathematics.project.proj02.config.App.ITER_COUNT;
 
 
 public class Main {
@@ -117,9 +122,29 @@ public class Main {
                 return "json";
             }
         });
+
+        server.addRoute("/getAlleq", new WebServer.WebServerResponse() {
+            @Override
+            protected String response() throws Exception {
+                Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                final Map<String, String> params = this.getParameters();
+                SolverInterface sol = getAllEqInstance(params);
+
+                if (sol != null) {
+                    return gson.toJson(sol.solve());
+                }
+
+                return gson.toJson(sol);
+            }
+
+            @Override
+            protected String getExt() {
+                return "json";
+            }
+        });
     }
 
-    private static Object SolODE(String p, String q, String r, String f, String y0, String yd0)
+    public static Object SolODE(String p, String q, String r, String f, String y0, String yd0)
             throws ExecutionException, InterruptedException {
         MatlabEngine ml = GetMatlab();
         PrepareMatlab(ml);
@@ -159,7 +184,7 @@ public class Main {
         ml.eval("conds = [" + sb2.toString() + "];\n");
 
         ml.eval("ySol(t) = dsolve(ode, conds)\n");
-        ml.eval("ySol = simplify(ySol)\n");
+        ml.eval("ySol = simplify(ySol, " + App.SIMPLIFY_COUNT + ")\n");
         ml.eval("ySolChar = char(ySol);\n");
 
         return ml.getVariable("ySolChar");
@@ -181,28 +206,48 @@ public class Main {
     private static Object getEeq(String kind, String f, String vpp, String vdc) throws ExecutionException, InterruptedException {
         MatlabEngine ml = GetMatlab();
         PrepareMatlab(ml);
-        ml.eval("syms x k t;");
+        ml.eval("syms x k t E(t);");
         ml.eval(String.format("f = %s;", f));
         ml.eval(String.format("Vpp = %s;", vpp));
         ml.eval(String.format("Vdc = %s;", vdc));
         ml.eval("Vm = Vpp / 2;");
         switch (kind) {
             case "1"://正弦波
-                ml.eval("E = Vdc + Vm * symfun(sin(2*pi*f*t), t);");
+                ml.eval("E(t) = Vdc + Vm * symfun(sin(2*pi*f*t), t);");
                 break;
             case "2"://方波
-                ml.eval("E = Vdc + Vm * 4/pi*symfun(symsum((sin((2*k-1)*2*pi*f*t))/(2*k-1), k, 1, 50), t);");
+                ml.eval("E(t) = Vdc + Vm * 4/pi*symfun(symsum((sin((2*k-1)*2*pi*f*t))/(2*k-1), k, 1, " + String.valueOf(ITER_COUNT) + "), t);");
                 break;
             case "3"://三角波
-                ml.eval("E = Vdc + Vm * 8/pi^2*symfun(symsum((-1)^k*(sin((2*k+1)*t*2*pi*f))/(2*k+1)^2, k, 0, 50), t);");
+                ml.eval("E(t) = Vdc + Vm * 8/pi^2*symfun(symsum((-1)^k*(sin((2*k+1)*t*2*pi*f))/(2*k+1)^2, k, 0, " + String.valueOf(ITER_COUNT) + "), t);");
                 break;
             default:
-                ml.eval("E = 0 * t;");
+                ml.eval("E(t) = 0 * t;");
         }
 
+        ml.eval("E = vpa(E, 15);");
         ml.eval("Ec = char(E);");
 
         return ml.getVariable("Ec");
+    }
+
+    @Nullable
+    private static SolverInterface getAllEqInstance(Map<String, String> otherParams) throws EngineException, InterruptedException {
+        MatlabEngine ml = GetMatlab();
+        String
+                type = otherParams.get("type"),
+                R = otherParams.get("R"),
+                L = otherParams.get("L"),
+                C = otherParams.get("C"),
+                vc0 = otherParams.get("vc0"),
+                il0 = otherParams.get("il0");
+
+        switch (type) {
+            case "1":
+                return new Solver1(ml, R, L, C, il0, vc0);
+        }
+
+        return null;
     }
 
     static void PrepareMatlab(MatlabEngine ml) throws ExecutionException, InterruptedException {

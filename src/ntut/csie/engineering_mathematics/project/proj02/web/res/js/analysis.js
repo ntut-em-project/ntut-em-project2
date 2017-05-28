@@ -42,6 +42,10 @@ function getCurConds() {
     return ret;
 }
 
+function getFirstComponentByType(type) {
+    return AllComponent.filter(x => x.type === type)[0];
+}
+
 function getCurType() {
     const conds = getCurConds();
     for (let i = 0; i < TYPES.length; i++) {
@@ -75,6 +79,7 @@ function getEeq() {
     });
 }
 
+let _lastG = [];
 function run() {
     const EQ = $("#eq").empty();
     const addEq = (vars, func) => {
@@ -87,14 +92,48 @@ function run() {
     };
     let eqs = [];
 
+    if (_lastG.length > 0) {
+        _lastG.forEach(g => {
+            g.destroy();
+            g.el.innerHTML = '';
+        });
+        _lastG.length = 0;
+    }
     getEeq().then((Eeq) => {
         addEq("E", Eeq);
         eqs.push("E");
+    }).then(() => {
+        const
+            type = getCurType(),
+            R = getFirstComponentByType('R') || {},
+            L = getFirstComponentByType('L') || {},
+            C = getFirstComponentByType('C') || {};
+
+        let info = {
+            type: type.id,
+            R: R.value,
+            L: L.value,
+            C: C.value,
+            il0: L.initValue,
+            vc0: C.initValue,
+        };
+
+        return ajax("/getAlleq", {
+            data: info,
+            type: "POST",
+            dataType: "json"
+        }).then(arr => {
+            arr.forEach(eq => {
+                addEq(eq.key, eq.value);
+                eqs.push(eq.key);
+            });
+            return arr;
+        });
     }).then(() => {//Eval functions by step
         let p = [];
         eqs.forEach(eq => {
             p.push(
-                GetFunctionPoints(eq, 0, 10, .01).then(ret => {
+                GetFunctionPoints(eq, 0, 20, .05).then(ret => {
                     return {
                         data: ret,
                         label: eq
@@ -105,58 +144,80 @@ function run() {
 
         return Promise.all(p);
     }).then(pArr => {
-        drawPointArray(pArr);
+        let EArr = pArr.filter(x => {
+            const s = x.label.toLowerCase();
+            return s.startsWith('v') || s.startsWith('e');
+        });
+        let IArr = pArr.filter(x => {
+            const s = x.label.toLowerCase();
+            return s.startsWith('i');
+        });
+
+        _lastG.push(drawPointArray(EArr, document.getElementById("fplot-v"), "Voltage"));
+        _lastG.push(drawPointArray(IArr, document.getElementById("fplot-i"), "Current"));
     });
 }
 
-function drawPointArray(arr) {
-    (function mouse_drag(container) {
+function drawPointArray(arr, container, title) {
 
-        let
-            options,
-            graph,
-            start,
-            i;
+    let
+        options,
+        start,
+        graph;
 
 
-        options = {
-            selection: {mode: 'x', fps: 30},
-            title: 'Result'
-        };
+    options = {
+        xaxis: {min: 0, max: 5},
+        title: title
+    };
 
-        // Draw graph with default options, overwriting with passed options
-        function drawGraph(opts) {
+    // Draw graph with default options, overwriting with passed options
+    function drawGraph(opts) {
 
-            // Clone the options, so the 'options' variable always keeps intact.
-            var o = Flotr._.extend(Flotr._.clone(options), opts || {});
+        // Clone the options, so the 'options' variable always keeps intact.
+        var o = Flotr._.extend(Flotr._.clone(options), opts || {});
 
-            // Return a new graph.
-            return Flotr.draw(
-                container,
-                arr,
-                o
-            );
-        }
+        // Return a new graph.
+        return Flotr.draw(
+            container,
+            arr,
+            o
+        );
+    }
 
-        // Actually draw the graph.
-        graph = drawGraph();
+    // Actually draw the graph.
+    graph = drawGraph();
 
-        // Hook into the 'flotr:select' event.
-        Flotr.EventAdapter.observe(container, 'flotr:select', function (area) {
 
-            // Draw graph with new area
-            graph = drawGraph({
-                xaxis: {min: area.x1, max: area.x2},
-                yaxis: {min: area.y1, max: area.y2}
-            });
+    function initializeDrag(e) {
+        start = graph.getEventPosition(e);
+        Flotr.EventAdapter.observe(document, 'mousemove', move);
+        Flotr.EventAdapter.observe(document, 'mouseup', stopDrag);
+    }
+
+    function move(e) {
+        var
+            end = graph.getEventPosition(e),
+            xaxis = graph.axes.x,
+            offset = start.x - end.x;
+        if (xaxis.min + offset < 0) return;
+        graph = drawGraph({
+            xaxis: {
+                min: xaxis.min + offset,
+                max: xaxis.max + offset
+            }
         });
+        // @todo: refector initEvents in order not to remove other observed events
+        Flotr.EventAdapter.observe(graph.overlay, 'mousedown', initializeDrag);
+    }
 
-        // When graph is clicked, draw the graph with default area.
-        Flotr.EventAdapter.observe(container, 'flotr:click', function () {
-            drawGraph();
-        });
+    function stopDrag() {
+        Flotr.EventAdapter.stopObserving(document, 'mousemove', move);
+    }
 
-    })(document.getElementById("fplot"));
+    Flotr.EventAdapter.observe(graph.overlay, 'mousedown', initializeDrag);
+
+    return graph;
 }
 
 $("#run").click(run);

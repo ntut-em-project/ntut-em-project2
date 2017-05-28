@@ -51,7 +51,11 @@
 
                 <div class="panel panel-default">
                     <div class="panel-heading">波形</div>
-                    <div class="panel-body" id="fplot"></div>
+                    <div class="panel-body">
+                        <div class="fplot"  id="fplot-v"></div>
+                        <hr/>
+                        <div class="fplot"  id="fplot-i"></div>
+                    </div>
                 </div>
             </div>
             <aside class="col-xs-4">
@@ -62,16 +66,16 @@
                             <p>橫</p>
                             <div class="component-wrapper">
                                 <img src="images/r-0.png" class="component" data-type="R" data-deg="0"/>
-                                <div class="desc">電阻 (kΩ)</div>
+                                <div class="desc">電阻 (<!--k-->Ω)</div>
                             </div>
                             <div class="component-wrapper">
 
                                 <img src="images/l-0.png" class="component" data-type="L" data-deg="0"/>
-                                <div class="desc">電感 (mL)</div>
+                                <div class="desc">電感 (<!--m-->L)</div>
                             </div>
                             <div class="component-wrapper">
                                 <img src="images/c-0.png" class="component" data-type="C" data-deg="0"/>
-                                <div class="desc">電容 (µC)</div>
+                                <div class="desc">電容 (<!--µ-->C)</div>
                             </div>
                         </section>
 
@@ -163,7 +167,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" id="rot_c">旋轉</button>
-                <button type="button" class="btn btn-primary" data-dismiss="modal">儲存</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal" id="saveM">儲存</button>
             </div>
         </div>
     </div>
