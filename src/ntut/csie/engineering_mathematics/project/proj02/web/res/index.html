@@ -15,6 +15,7 @@
     <script src="js/jquery-3.2.1.min.js"></script>
     <script src="js/jquery-ui.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
+    <script src="js/flotr2.min.js"></script>
 </head>
 <body>
 <header>
@@ -36,39 +37,24 @@
                     <div class="drop-cover"></div>
                     <canvas id="canvas" width="100%" height="400"></canvas>
                 </div>
-            </div>
-            <aside class="col-xs-4">
+                <p>&nbsp;</p>
+                <div class="text-right">
+                    <button class="btn btn-warning" id="run">顯示方程式與波形</button>
+                </div>
+
                 <div class="panel panel-default">
-                    <div class="panel-heading">電源類型</div>
-                    <div class="panel-body">
-                        <form>
-                            <div class="row">
-                                <div class="col-xs-4">
-                                    <div class="form-group">
-                                        <label for="eKind">波形</label>
-                                        <select class="form-control" id="eKind" name="eKind">
-                                            <option value="1">正弦波</option>
-                                            <option value="2">方波</option>
-                                            <option value="3">三角波</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-xs-4">
-                                    <div class="form-group">
-                                        <label for="f">頻率 (Hz)</label>
-                                        <input type="number" value="1" id="f" name="f" class="form-control">
-                                    </div>
-                                </div>
-                                <div class="col-xs-4">
-                                    <div class="form-group">
-                                        <label for="vm">V<sub>m</sub> (V)</label>
-                                        <input type="number" value="5" id="vm" name="vm" class="form-control">
-                                    </div>
-                                </div>
-                            </div>
-                        </form>
+                    <div class="panel-heading">方程式</div>
+                    <div class="panel-body" id="eq">
+
                     </div>
                 </div>
+
+                <div class="panel panel-default">
+                    <div class="panel-heading">波形</div>
+                    <div class="panel-body" id="fplot"></div>
+                </div>
+            </div>
+            <aside class="col-xs-4">
                 <div class="panel panel-default" id="componentSrc">
                     <div class="panel-heading">元件</div>
                     <div class="panel-body">
@@ -89,8 +75,8 @@
                             </div>
                         </section>
 
-                        <hr/>
-                        <section class="v">
+                        <hr hidden/>
+                        <section class="v" hidden>
                             <p>直</p>
                             <div class="row">
                                 <div class="col-xs-4">
@@ -123,6 +109,43 @@
 
                     </div>
                 </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading">電源類型</div>
+                    <div class="panel-body">
+                        <form>
+                            <div class="row">
+                                <div class="col-xs-6">
+                                    <div class="form-group">
+                                        <label for="eKind">波形</label>
+                                        <select class="form-control" id="eKind" name="eKind">
+                                            <option value="1">正弦波</option>
+                                            <option value="2">方波</option>
+                                            <option value="3">三角波</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-xs-6">
+                                    <div class="form-group">
+                                        <label for="f">頻率 (Hz)</label>
+                                        <input type="number" value="1" id="f" name="f" class="form-control">
+                                    </div>
+                                </div>
+                                <div class="col-xs-6">
+                                    <div class="form-group">
+                                        <label for="vpp">V<sub>PP</sub> (V)</label>
+                                        <input type="number" value="10" id="vpp" name="vpp" class="form-control">
+                                    </div>
+                                </div>
+                                <div class="col-xs-6">
+                                    <div class="form-group">
+                                        <label for="vdc">V<sub>DC</sub> (V)</label>
+                                        <input type="number" value="0" id="vdc" name="vdc" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </aside>
         </div>
     </div>
@@ -146,5 +169,6 @@
     </div>
 </div>
 <script src="js/main.js"></script>
+<script src="js/analysis.js"></script>
 </body>
 </html>

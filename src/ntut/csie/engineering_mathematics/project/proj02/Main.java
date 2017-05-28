@@ -102,6 +102,21 @@ public class Main {
                 return "json";
             }
         });
+
+        server.addRoute("/getEeq", new WebServer.WebServerResponse() {
+            @Override
+            protected String response() throws Exception {
+                Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                final Map<String, String> params = this.getParameters();
+
+                return gson.toJson(getEeq(params.get("kind"), params.get("f"), params.get("vpp"), params.get("vdc")));
+            }
+
+            @Override
+            protected String getExt() {
+                return "json";
+            }
+        });
     }
 
     private static Object SolODE(String p, String q, String r, String f, String y0, String yd0)
@@ -155,7 +170,7 @@ public class Main {
             throws ExecutionException, InterruptedException {
         MatlabEngine ml = GetMatlab();
         PrepareMatlab(ml);
-        ml.eval(String.format("F = @(t) (%s);", func));
+        ml.eval(String.format("if exist (\"%s\")>0,F=matlabFunction(%s),else,F=@(t) (%s),end;", func, func, func));
         ml.eval(String.format("input = [%s:%s:%s]';", start, step, end));
         ml.eval("result = arrayfun(F, input);");
         ml.eval("out = [input result]");
@@ -163,8 +178,35 @@ public class Main {
         return ml.getVariable("out");
     }
 
+    private static Object getEeq(String kind, String f, String vpp, String vdc) throws ExecutionException, InterruptedException {
+        MatlabEngine ml = GetMatlab();
+        PrepareMatlab(ml);
+        ml.eval("syms x k t;");
+        ml.eval(String.format("f = %s;", f));
+        ml.eval(String.format("Vpp = %s;", vpp));
+        ml.eval(String.format("Vdc = %s;", vdc));
+        ml.eval("Vm = Vpp / 2;");
+        switch (kind) {
+            case "1"://正弦波
+                ml.eval("E = Vdc + Vm * symfun(sin(2*pi*f*t), t);");
+                break;
+            case "2"://方波
+                ml.eval("E = Vdc + Vm * 4/pi*symfun(symsum((sin((2*k-1)*2*pi*f*t))/(2*k-1), k, 1, 50), t);");
+                break;
+            case "3"://三角波
+                ml.eval("E = Vdc + Vm * 8/pi^2*symfun(symsum((-1)^k*(sin((2*k+1)*t*2*pi*f))/(2*k+1)^2, k, 0, 50), t);");
+                break;
+            default:
+                ml.eval("E = 0 * t;");
+        }
+
+        ml.eval("Ec = char(E);");
+
+        return ml.getVariable("Ec");
+    }
+
     static void PrepareMatlab(MatlabEngine ml) throws ExecutionException, InterruptedException {
-        ml.eval("clearvars");
+        // ml.eval("clearvars");
         if (PreRunCmd != null) {
             ml.eval(PreRunCmd);
         }

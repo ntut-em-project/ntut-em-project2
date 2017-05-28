@@ -1,6 +1,25 @@
 "use strict";
 //Dom
 let AllComponent = [], AllConnection = [], AllNodeCollection = [];
+
+function ajax(url, setting) {
+    let _set = {};
+    Object.assign(_set, setting);
+
+    return new Promise((a, b) => {
+        _set.success = function (r) {
+            console.log(r);
+            a(r);
+        };
+        _set.error = function (e) {
+            console.error(e);
+            alert(e.responseText);
+            b(e);
+        };
+        $.ajax(url, _set);
+    });
+}
+
 (function () {
     const CanvasContainer = $("#mainCanvas");
     const dialog = $('#myModal');
@@ -32,9 +51,19 @@ let AllComponent = [], AllConnection = [], AllNodeCollection = [];
         return "RLC".indexOf(x) >= 0;
     };
 
-    const drawNode = (node) => {
+    const SameNode = (n1, n2) => {
+        return n1 && n2 && n1.id === n2.id && n1.c === n2.c;
+    };
+
+    /**
+     *
+     * @param node
+     * @param [color]
+     */
+    const drawNode = (node, color) => {
         if (!node) return;
-        ctx.fillStyle = "#000";
+        color = color || "#000";
+        ctx.fillStyle = color;
 
         ctx.beginPath();
         ctx.moveTo(node.x, node.y);
@@ -58,7 +87,7 @@ let AllComponent = [], AllConnection = [], AllNodeCollection = [];
         }
 
         add(node) {
-            if (!this.nodes.some(n => node.c === n.c && node.id === n.id)) {
+            if (!this.nodes.some(n => SameNode(node, n.id))) {
                 this.nodes.push(node);
             }
         }
@@ -295,12 +324,13 @@ let AllComponent = [], AllConnection = [], AllNodeCollection = [];
         }
 
         draw() {
-            const n1 = this.Node1, n2 = this.Node2;
-            drawNode(n1);
-            drawNode(n2);
+            const n1 = this.Node1, n2 = this.Node2, _first = ClickedNode[0];
+            drawNode(n1, SameNode(_first, n1) ? 'red' : undefined);
+            drawNode(n2, SameNode(_first, n2) ? 'red' : undefined);
             ctx.font = "20px Arial";
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
+            ctx.fillStyle = '#000';
             let text = this.type;
             let p = {};
             const OFFSET = 25;
@@ -356,19 +386,25 @@ let AllComponent = [], AllConnection = [], AllNodeCollection = [];
     }
 
     function dragEnd(ev) {
+        console.log('dragEnd');
         this.classList.remove('dragging');
         CanvasContainer.removeClass('c-d');
         CurDragObj = null;
     }
 
     function drop(ev) {
+        console.log('drop');
         ev.preventDefault();
-        console.log(ev);
         let data = JSON.parse(ev.dataTransfer.getData("text"));
 
         let c = data.id ? document.getElementById(data.id).component : new Component(data.type, data.deg);
-        c.x = ev.layerX - data.size.width / 2;
-        c.y = ev.layerY - data.size.height / 2;
+        const
+            tb = CanvasContainer[0].getBoundingClientRect(),
+            layerX = ev.clientX - tb.left,
+            layerY = ev.clientY - tb.top;
+        console.log(tb, layerX, layerY);
+        c.x = layerX - data.size.width / 2;
+        c.y = layerY - data.size.height / 2;
     }
 
     function allowDrop(ev) {
@@ -447,67 +483,39 @@ let AllComponent = [], AllConnection = [], AllNodeCollection = [];
     $("form").submit((e) => e.preventDefault());
 })();
 
-
 function SolveODE(p, q, r, f, y0, yd0) {
-    return new Promise((a, b) => {
-        $.ajax("/SolODE", {
-            method: "POST",
-            data: {
-                p: p,
-                q: q,
-                r: r,
-                f: f,
-                y0: y0,
-                yd0: yd0,
-            },
-            dataType: "json",
-            success: function (r) {
-                console.log("ODE", r);
-                a(r);
-            },
-            error: function (e) {
-                b(e);
-            }
-        });
+    return ajax("/SolODE", {
+        method: "POST",
+        data: {
+            p: p,
+            q: q,
+            r: r,
+            f: f,
+            y0: y0,
+            yd0: yd0,
+        },
+        dataType: "json"
     });
 }
 
 function GetFunctionPoints(func, start, end, step) {
-    return new Promise((a, b) => {
-        $.ajax("/GetPts", {
-            method: "POST",
-            data: {
-                func: func,
-                start: start,
-                end: end,
-                step: step,
-            },
-            dataType: "json",
-            success: function (r) {
-                console.log("Points for eq: ", func, "From", start, "To", end);
-                console.log(r);
-                a(r);
-            },
-            error: function (e) {
-                b(e);
-            }
-        });
+    return ajax("/GetPts", {
+        method: "POST",
+        data: {
+            func: func,
+            start: start,
+            end: end,
+            step: step,
+        },
+        dataType: "json"
     });
 }
 
-function PrepareVars(obj){
-    return new Promise((a, b) => {
-        $.ajax("/PrepareVars", {
-            method: "POST",
-            data: obj,
-            dataType: "json",
-            success: function (r) {
-                a(r);
-            },
-            error: function (e) {
-                b(e);
-            }
-        });
+function PrepareVars(obj) {
+    return ("/PrepareVars", {
+        method: "POST",
+        data: obj,
+        dataType: "json",
     });
 }
 
