@@ -59,6 +59,30 @@ const TYPES = [
             node: 2,
         }
     },
+    {
+        name: 'RL',
+        kind: 'S',
+        id: 6,
+        conds: {
+            R: 1,
+            C: 0,
+            L: 1,
+            E: 1,
+            node: 3,
+        }
+    },
+    {
+        name: 'RL',
+        kind: 'P',
+        id: 7,
+        conds: {
+            R: 1,
+            C: 0,
+            L: 1,
+            I: 1,
+            node: 2,
+        }
+    },
 ];
 
 function getCurConds() {
@@ -169,7 +193,7 @@ function run() {
             type: "POST",
             dataType: "json"
         }).then(arr => {
-            if(!arr) return;
+            if (!arr) return;
             arr.forEach(eq => {
                 addEq(eq.key, eq.value);
                 eqs.push(eq.key);

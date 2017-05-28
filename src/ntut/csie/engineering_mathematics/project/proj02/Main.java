@@ -255,6 +255,10 @@ public class Main {
                 return new Solver4(ml, R, C, vc0);
             case "5":
                 return new Solver5(ml, R, C, vc0);
+            case "6":
+                return new Solver6(ml, R, L, il0);
+            case "7":
+                return new Solver7(ml, R, L, il0);
         }
 
         return null;
