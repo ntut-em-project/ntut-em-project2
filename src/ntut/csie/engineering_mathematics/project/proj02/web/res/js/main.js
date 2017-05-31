@@ -196,9 +196,9 @@ function ajax(url, setting) {
                 let p = -1;
 
                 if (t.deg == 1) {
-                    p = e.layerY / b.height;
+                    p = e.offsetY / b.height;
                 } else {
-                    p = e.layerX / b.width;
+                    p = e.offsetX / b.width;
                 }
                 if (p > 1 - _X) {
                     node = t.Node2;

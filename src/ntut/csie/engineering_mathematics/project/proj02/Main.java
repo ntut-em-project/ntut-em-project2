@@ -185,7 +185,7 @@ public class Main {
 
         ml.eval("ySol(t) = dsolve(ode, conds);\n");
         ml.eval("ySol = vpa(ySol, " + VPA_DOT + ");\n");
-        ml.eval("ySol = simplify(ySol, " + App.SIMPLIFY_LIMIT + ")\n");
+        ml.eval("ySol = simplify(ySol, " + App.SIMPLIFY_LIMIT + ");\n");
         ml.eval("ySolChar = char(ySol);\n");
 
         return ml.getVariable("ySolChar");
@@ -196,7 +196,7 @@ public class Main {
             throws ExecutionException, InterruptedException {
         MatlabEngine ml = GetMatlab();
         PrepareMatlab(ml);
-        ml.eval(String.format("if exist (\"%s\")>0,F=matlabFunction(%s),else,F=@(t) (%s),end;", func, func, func));
+        ml.eval(String.format("if exist (\"%s\")>0,F=matlabFunction(%s);,else,F=@(t) (%s);,end;", func, func, func));
         ml.eval(String.format("input = [%s:%s:%s]';", start, step, end));
         ml.eval("result = arrayfun(F, input);");
         ml.eval("out = [input result];");
