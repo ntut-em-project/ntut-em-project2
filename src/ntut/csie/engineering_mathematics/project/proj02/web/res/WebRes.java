@@ -15,7 +15,7 @@ public class WebRes {
     public static InputStream GetResource(String path) {
         if(App.DEBUG){
             try {
-                return new FileInputStream("\\sources_no_gd\\ntut_em\\project2\\ntut_em_project2\\src\\ntut\\csie\\engineering_mathematics\\project\\proj02\\web\\res\\" + path);
+                return new FileInputStream("D:\\xampp\\htdocs\\em_proj" + path);
             } catch (FileNotFoundException e) {
                 return null;
             }

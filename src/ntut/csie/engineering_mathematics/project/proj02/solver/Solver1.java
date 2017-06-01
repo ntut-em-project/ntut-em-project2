@@ -37,7 +37,7 @@ public class Solver1 extends SolverAbstract {
         prepareVar("L", L);
         prepareVar("C", C);
 
-        SolODE("1", "R/L", "1/(L*C)", "1/L * diff(E, t)", I0, String.format("(0) = E(0) - R * %s - %s", I0, V0));
+        SolODE("1", "R/L", "1/(L*C)", "1/L * diff(E, t)", I0, String.format("(0) = (E(0) - R * %s - %s) / (-%s)", I0, V0, L));
         ml.eval("i(t) = vpa(ySol, " + VPA_DOT + ");");
         ml.eval("syms v_R(t) v_L(t) v_C(t) i_R(t) i_L(t) i_C(t);");
         ml.eval("v_R(t) = simplify(vpa(R * i, " + VPA_DOT + "), " + App.SIMPLIFY_LIMIT + ");");

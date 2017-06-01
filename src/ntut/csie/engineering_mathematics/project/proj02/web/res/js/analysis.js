@@ -148,6 +148,7 @@ function run() {
     const addEq = (vars, func) => {
         EQ.append(`
         <div class="eq">
+            <input type="checkbox" checked data-eq="${vars}"/>
             <var>${vars} = </var>
             <span>${func}</span>
         </div>
@@ -207,7 +208,7 @@ function run() {
                 GetFunctionPoints(eq, 0, T * 50, .005).then(ret => {
                     return {
                         data: ret,
-                        label: eq
+                        label: eq,
                     };
                 })
             );
@@ -215,6 +216,7 @@ function run() {
 
         return Promise.all(p);
     }).then(pArr => {
+
         let EArr = pArr.filter(x => {
             const s = x.label.toLowerCase();
             return s.startsWith('v') || s.startsWith('e');
@@ -232,10 +234,17 @@ function run() {
 function drawPointArray(arr, container, title, t) {
     container.innerHTML = '';
     let nC = container.cloneNode(false);
+    let showArr = [];
     container.parentNode.insertBefore(nC, container);
     container.parentNode.removeChild(container);
 
     container = nC;
+    let inps = $("#eq").find('input[type="checkbox"]');
+
+    inps.bind('input change', function(){
+        graph = drawGraph();
+    });
+
     let
         options,
         start,
@@ -254,7 +263,16 @@ function drawPointArray(arr, container, title, t) {
         var o = Flotr._.extend(Flotr._.clone(options), opts || {});
         graph = Flotr.draw(
             container,
-            arr,
+            (function(){
+                let allToShow = [];
+                inps.filter(":checked").each(function(){
+                   allToShow.push(this.getAttribute('data-eq'));
+                });
+
+                showArr = arr.filter(x=>allToShow.indexOf(x.label)!==-1);
+
+                return showArr;
+            })(),
             o
         );
 
