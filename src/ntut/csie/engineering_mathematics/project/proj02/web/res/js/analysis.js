@@ -145,7 +145,7 @@ function getPowerEQ() {
         dc: $("#dc").val(),
     };
 
-    return ajax("/getPowerEQ", {
+    return ajax("./getPowerEQ", {
         data: info,
         type: "POST",
         dataType: "json"
@@ -199,7 +199,7 @@ function run() {
             vc0: C.initValue,
         };
 
-        return ajax("/getAlleq", {
+        return ajax("./getAlleq", {
             data: info,
             type: "POST",
             dataType: "json"

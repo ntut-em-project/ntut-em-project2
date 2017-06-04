@@ -501,7 +501,7 @@ function ajax(url, setting) {
 })();
 
 function SolveODE(p, q, r, f, y0, yd0) {
-    return ajax("/SolODE", {
+    return ajax("./SolODE", {
         method: "POST",
         data: {
             p: p,
@@ -516,7 +516,7 @@ function SolveODE(p, q, r, f, y0, yd0) {
 }
 
 function GetFunctionPoints(func, start, end, step) {
-    return ajax("/GetPts", {
+    return ajax("./GetPts", {
         method: "POST",
         data: {
             func: func,
@@ -529,7 +529,7 @@ function GetFunctionPoints(func, start, end, step) {
 }
 
 function PrepareVars(obj) {
-    return ("/PrepareVars", {
+    return ("./PrepareVars", {
         method: "POST",
         data: obj,
         dataType: "json",
